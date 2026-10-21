@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host ru.localhost",
-    "build": "tsc -b && vite build; cp dist/assets/*.js ../ru/public/abrakadabra/assets/main.js && cp dist/assets/*.css ../ru/public/abrakadabra/assets/style.css",
+    "build": "tsc -b && vite build; cp dist/assets/*.js ../../ru/public/abrakadabra/assets/main.js && cp dist/assets/*.css ../../ru/public/abrakadabra/assets/style.css",
     "lint": "eslint .",
     "preview": "vite preview"
   },
