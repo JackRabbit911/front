@@ -1,0 +1,33 @@
+import { useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+
+import { changeMaster } from "../Form/utils";
+import Members from "reused/Participants/components/Members";
+import MembersPermissions from "./components/MembersPermissions";
+import AuthorsWrapper from "reused/Participants/components/AuthorsWrapper";
+
+import type { OwnAuthor } from "reused/Participants/types";
+
+type Props = {
+  ownAuthors: OwnAuthor[];
+}
+
+const Authors = ({ ownAuthors }: Props) => {
+  const { watch, setValue } = useFormContext()
+  const members = watch('members') || []
+  const masterId = watch('masterId')
+
+  useEffect(() => {
+    const newMembers = changeMaster(members, ownAuthors, masterId)
+    setValue('members', newMembers)
+  }, [masterId])
+
+  return (
+    <AuthorsWrapper
+      ownAuthors={ownAuthors}
+      choiceList={<Members />}
+      permissions={<MembersPermissions/>}
+  />)
+}
+
+export default Authors

@@ -1,0 +1,81 @@
+import { pending } from "patronum";
+import { createEffect, createEvent, createStore, sample } from "effector";
+
+import ajax from "common/ajax";
+import { globalReset } from "common/store";
+import { modalOpened } from "reused/Modal/store";
+import { loading } from "reused/InModal/Loading";
+import { successDialog } from "reused/InModal/SuccessDialog";
+import { getMyAuthorsUri, getMyGroupMembersUri, saveAuthorUri } from "common/constants";
+
+import { $csrf } from "common/store/csrf";
+import type { ApiResponse } from "common/ajax/types";
+import type { Member } from "reused/Participants/types";
+import type { FormOutputType, MyAuthor } from "../schema";
+
+type Members = {
+    members: Member[];
+}
+
+export const authorSubmitted = createEvent<FormOutputType>()
+export const authorSaved = createEvent()
+
+const saveMyAuthorFx = createEffect((data: FormOutputType) => {
+    const post = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined)
+    )
+
+    return ajax.postForm(saveAuthorUri, post, {
+        headers: {
+            'X-XSRF-TOKEN': $csrf.getState()
+        }
+    })
+})
+
+export const getMyAuthorsFx = createEffect(() => (
+    ajax.get<ApiResponse<MyAuthor[]>>(getMyAuthorsUri)
+))
+
+export const getMyMembersFx = createEffect((id: string | undefined) => (
+    ajax.get<ApiResponse<Members>>([getMyGroupMembersUri, id].join('/'))
+))
+
+export const $myAuthors = createStore<MyAuthor[]>([])
+    .reset(globalReset)
+
+export const $myMembers = createStore<Member[]>([])
+    .reset(globalReset)
+
+sample({
+    clock: getMyAuthorsFx.doneData,
+    filter: (response) => Boolean(response?.data?.success),
+    fn: (response) => response.data.result,
+    target: $myAuthors,
+})
+
+sample({
+    clock: authorSubmitted,
+    target: saveMyAuthorFx,
+})
+
+sample({
+    clock: authorSubmitted,
+    fn: () => loading,
+    target: modalOpened,
+})
+
+sample({
+    clock: saveMyAuthorFx.doneData,
+    filter: (response) => Boolean(response?.data?.success),
+    fn: () => successDialog({ link: 'authors' }),
+    target: modalOpened,
+})
+
+sample({
+    clock: getMyMembersFx.doneData,
+    filter: (response) => Boolean(response?.data?.success),
+    fn: (response) => response.data.result.members,
+    target: $myMembers,
+})
+
+export const $isPending = pending([getMyAuthorsFx])
