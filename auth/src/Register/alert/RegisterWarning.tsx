@@ -1,0 +1,30 @@
+import { useTranslate } from "common/i18n/hooks";
+import { Link } from "react-router";
+import Alert from "reused/Alert";
+import Warning from "reused/icons/Warning";
+
+const RegisterWarning = () => {
+  const __ = useTranslate()
+
+  return (
+    <Alert
+      className="alert alert-warning"
+      icon={<Warning />}
+    >
+      <h3 className="text-lg font-medium">
+        {__('Whoops...')}
+      </h3>
+      <p>
+        {__('code_expired')}
+      </p>
+      <Link to="/register">
+        <span className="link font-bold">
+          {__('the registration procedure')}
+        </span>
+      </Link>
+    </Alert>
+
+  )
+}
+
+export default RegisterWarning
